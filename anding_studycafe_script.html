@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>앤딩스터디카페 영업 스크립트</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f4f0; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .wrap { width: 100%; max-width: 620px; }
+  .header { margin-bottom: 1.5rem; }
+  .logo { font-size: 13px; color: #888; margin-bottom: 4px; }
+  .title { font-size: 22px; font-weight: 500; color: #1a1a1a; }
+  .dots { display: flex; gap: 6px; margin: 1rem 0 1.5rem; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ddd; transition: background 0.3s; }
+  .dot.on { background: #534AB7; }
+  .card { background: #fff; border: 0.5px solid #e0ddd8; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+  .tag { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 8px; margin-bottom: 12px; font-weight: 500; }
+  .tm { background: #EEEDFE; color: #3C3489; }
+  .tt { background: #E1F5EE; color: #085041; }
+  .tw { background: #FAECE7; color: #712B13; }
+  .h1 { font-size: 18px; font-weight: 500; color: #1a1a1a; margin: 0 0 4px; }
+  .sub { font-size: 13px; color: #888; margin: 0 0 1.2rem; }
+  .q { border-left: 3px solid #534AB7; padding-left: 1rem; margin: 0.75rem 0; color: #1a1a1a; font-size: 15px; line-height: 1.75; }
+  .q2 { border-left: 3px solid #0F6E56; padding-left: 1rem; margin: 0.75rem 0; color: #1a1a1a; font-size: 15px; line-height: 1.75; }
+  .body-txt { font-size: 14px; color: #666; line-height: 1.65; margin: 0.75rem 0 0; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.25rem; }
+  .cb { background: transparent; border: 0.5px solid #ccc; border-radius: 8px; padding: 9px 15px; font-size: 14px; color: #1a1a1a; cursor: pointer; text-align: left; transition: all 0.15s; font-family: inherit; }
+  .cb:hover { background: #f5f4f0; border-color: #534AB7; color: #534AB7; }
+  .nav { display: flex; align-items: center; justify-content: space-between; margin-top: 0.75rem; }
+  .nb { background: transparent; border: 0.5px solid #ccc; border-radius: 8px; padding: 7px 14px; font-size: 13px; color: #888; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .nb:hover { background: #ebebeb; }
+  .nb:disabled { opacity: 0.3; cursor: default; }
+  .sl { font-size: 13px; color: #aaa; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <p class="logo">앤딩스터디카페</p>
+    <p class="title">아웃바운드 영업 스크립트</p>
+  </div>
+  <div class="dots" id="dots"></div>
+  <div id="screen"></div>
+</div>
+<script>
+const S={
+  intro:{tag:["tm","📞 오프닝"],title:"통화 시작",sub:"첫 3초가 핵심이에요",body:`<div class="q">"안녕하세요, ○○○ 대표님! 앤딩스터디카페 영업팀 [이름]입니다. 혹시 지금 통화 가능하신가요?"</div><p class="body-txt">잠깐 기다렸다가 반응을 확인하세요. 이전에 연락드렸던 분이라면 기억 환기 멘트로 넘어갑니다.</p>`,choices:[{l:"📱 네, 받아요",n:"recall"},{l:"😐 바빠요 / 잠깐만요",n:"busy"}]},
+  recall:{tag:["tm","🔄 기억 환기"],title:"기억 환기 멘트",sub:"부드럽게 과거 연결고리를 만들어요",body:`<div class="q">"저희가 이전에 스터디카페 창업 관련해서 한 번 연락드렸던 적 있는데, 기억하실지 모르겠네요 😊"</div>`,choices:[{l:"✅ 기억해요",n:"yes"},{l:"❓ 잘 모르겠는데요",n:"no"}]},
+  yes:{tag:["tt","😊 기억하는 경우"],title:"관심 재점화",sub:"반갑게 이어가기",body:`<div class="q">"아, 기억해주셨군요 감사합니다! 그때 이후로 수익 구조나 운영 방식이 많이 개선됐거든요. 그래서 먼저 연락드리고 싶었어요."</div><p class="body-txt">이후 미팅 약속 잡기로 자연스럽게 연결하세요.</p>`,choices:[{l:"📅 미팅 잡기로",n:"meeting"},{l:"💰 비용 물어봐요",n:"price"}]},
+  no:{tag:["tt","🔁 기억 못 하는 경우"],title:"재소개 멘트",sub:"자연스럽게 처음처럼 시작해요",body:`<div class="q">"괜찮습니다! 저희 앤딩스터디카페는 무인 운영이 가능한 스터디카페 브랜드인데요. 요즘 창업 문의가 많이 늘어서 관심 가져주셨던 분들께 먼저 연락드리고 있어요."</div>`,choices:[{l:"🙂 관심 있어요",n:"meeting"},{l:"😶 잘 모르겠어요",n:"noint"}]},
+  busy:{tag:["tw","⏰ 바쁜 경우"],title:"바쁘다고 할 때",sub:"짧게 핵심 하나만 물어보기",body:`<div class="q">"네, 죄송합니다! 그러면 딱 한 가지만 여쭤볼게요 — 창업에 대한 관심 자체는 아직 있으신 거죠?"</div>`,choices:[{l:"💬 있긴 한데요...",n:"stillint"},{l:"😐 모르겠어요",n:"reschedule"}]},
+  stillint:{tag:["tt","📩 관심 있는 경우"],title:"자료 먼저 제안",sub:"부담 없이 다음 단계로",body:`<div class="q">"그럼 문자로 간단한 자료 먼저 보내드릴게요. 시간 되실 때 한 번만 봐주세요. 5분이면 충분해요 😊"</div><p class="body-txt">문자 발송 후 2~3일 뒤 다시 연락하면 미팅 성사율이 높아집니다.</p>`,choices:[{l:"📅 미팅 잡기로",n:"meeting"}]},
+  reschedule:{tag:["tt","🗓 다음 일정"],title:"다음 연락 예약",sub:"끊지 말고 관계를 유지해요",body:`<div class="q">"알겠습니다! 그럼 다음 주 초에 다시 한번 연락드려도 될까요? 부담 없이요~"</div>`,choices:[{l:"🏠 처음으로",n:"intro"}]},
+  noint:{tag:["tw","❌ 관심 없는 경우"],title:"거절 극복 멘트",sub:"이유를 파악해서 가능성을 열어두세요",body:`<div class="q">"아, 네~ 혹시 이전이랑 상황이 좀 달라지신 건가요? 아니면 다른 방향으로 알아보고 계신 건지 여쭤봐도 될까요?"</div>`,choices:[{l:"🏗 창업 자체를 접었어요",n:"gaveup"},{l:"🔄 다른 업종 보고 있어요",n:"otherbiz"}]},
+  gaveup:{tag:["tt","💬 창업 포기"],title:"관계 유지 멘트",sub:"나중을 위해 문을 열어두세요",body:`<div class="q">"그러시군요, 혹시 나중에 다시 생각나실 때 연락주시면 제가 바로 도와드릴게요. 번호는 저장해두셨죠?"</div><p class="body-txt">억지로 잡으려 하지 말고 따뜻하게 마무리하는 게 장기적으로 효과적이에요.</p>`,choices:[{l:"🏠 처음으로",n:"intro"}]},
+  otherbiz:{tag:["tt","🔁 다른 업종 비교"],title:"비교 우위 어필",sub:"자료 발송으로 기회 만들기",body:`<div class="q">"스터디카페가 요즘 공실 리스크가 낮아서 다시 한 번만 비교해보시는 건 어떠세요? 자료만 문자로 보내드려도 될까요?"</div>`,choices:[{l:"📅 미팅 잡기로",n:"meeting"},{l:"💰 비용 문의",n:"price"}]},
+  price:{tag:["tm","💰 가격 문의"],title:"비용 문의 대응",sub:"숫자보다 먼저 맥락을 잡으세요",body:`<div class="q">"당연히 제일 중요한 부분이죠! 규모나 입지에 따라 달라지는 부분이 있어서, 대표님 상황에 맞게 수익 시뮬레이션을 뽑아드리는 게 정확해요."</div><p class="body-txt">소형 기준 초기 투자금 ○○원대에서 시작한다고 언급 후 미팅 유도하세요.</p>`,choices:[{l:"😟 너무 비싸지 않나요?",n:"expensive"},{l:"🏦 자금이 부족한데요",n:"nofunds"},{l:"📅 미팅 잡기로",n:"meeting"}]},
+  expensive:{tag:["tt","💡 비싸다고 할 때"],title:"순이익률로 설득",sub:"숫자로 인식을 바꿔줘요",body:`<div class="q">"인건비가 거의 안 들고 무인 운영이 가능하다 보니까 순이익률이 꽤 높거든요. 실제 사례로 월 수익 시뮬레이션을 보여드릴 수 있어요. 숫자로 보시면 생각이 달라지실 수도 있어요 😊"</div>`,choices:[{l:"📅 미팅 잡기로",n:"meeting"}]},
+  nofunds:{tag:["tt","🏦 자금 부족"],title:"정책자금 안내",sub:"창업 지원 연계로 부담 낮추기",body:`<div class="q">"혹시 정책 자금이나 소상공인 대출 활용해보신 적 있으세요? 저희가 창업 지원 연계도 같이 안내드리고 있어서, 생각보다 초기 부담을 많이 줄이시는 분들도 있거든요."</div>`,choices:[{l:"📅 미팅 잡기로",n:"meeting"}]},
+  meeting:{tag:["tm","📅 미팅 약속"],title:"미팅 약속 잡기",sub:"선택지 2개로 좁혀주는 게 핵심",body:`<div class="q">"한 번 직접 뵙고 얘기 나눠보면 좋을 것 같은데요 — 실제 매장도 같이 보시면 훨씬 현실적으로 느껴지거든요. 이번 주 수요일이나 목요일 중에 오전, 오후 어느 쪽이 편하세요?"</div>`,choices:[{l:"✅ 날짜 정했어요",n:"confirmed"},{l:"🤔 생각해볼게요",n:"maybe"}]},
+  maybe:{tag:["tt","🤔 생각해본다고 할 때"],title:"다음 연락 확정",sub:"자료 발송으로 온기 남기기",body:`<div class="q">"네, 물론이죠! 그러면 언제 다시 연락드리면 될까요? 다음 주 초 괜찮으세요? 그 전에 카카오톡으로 자료 하나 보내드려도 될까요?"</div>`,choices:[{l:"📅 날짜 다시 잡기",n:"meeting"},{l:"🏠 처음으로",n:"intro"}]},
+  confirmed:{tag:["tt","🎉 미팅 확정"],title:"마무리 멘트",sub:"번호 확인하고 따뜻하게 마무리",body:`<div class="q">"감사합니다 대표님! ○월 ○일 ○시에 저희 [장소]에서 뵙겠습니다. 오시기 전에 주소랑 안내 문자 드릴게요. 혹시 당일 연락 가능한 번호가 지금 이 번호 맞으시죠?"</div><div class="q2">"오늘 시간 내주셔서 감사합니다. 궁금하신 거 있으면 언제든지 연락 주세요~ 좋은 하루 되세요!"</div>`,choices:[{l:"🏠 처음부터 다시",n:"intro"}]}
+};
+
+let hist=["intro"];
+
+function render(){
+  const id=hist[hist.length-1];
+  const s=S[id];
+  const n=Math.min(hist.length+2,12);
+  document.getElementById("dots").innerHTML=Array.from({length:n},(_,i)=>`<div class="dot${i<hist.length?" on":""}"></div>`).join("");
+  const btns=s.choices.map(c=>`<button class="cb" onclick="go('${c.n}')">${c.l}</button>`).join("");
+  document.getElementById("screen").innerHTML=`
+    <div class="card">
+      <span class="tag ${s.tag[0]}">${s.tag[1]}</span>
+      <p class="h1">${s.title}</p>
+      <p class="sub">${s.sub}</p>
+      ${s.body}
+      <div class="btns">${btns}</div>
+    </div>
+    <div class="nav">
+      <button class="nb" onclick="back()" ${hist.length<=1?"disabled":""}>← 이전</button>
+      <span class="sl">${hist.length}번째 단계</span>
+      <button class="nb" onclick="go('intro')">🏠 처음</button>
+    </div>`;
+}
+
+function go(id){hist.push(id);render();}
+function back(){if(hist.length>1){hist.pop();render();}}
+render();
+</script>
+</body>
+</html>
