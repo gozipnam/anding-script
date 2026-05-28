@@ -86,7 +86,7 @@ function render(){
     </div>`;
 }
 
-function go(id){hist.push(id);render();}
+function go(id){if(id==="intro"){hist=["intro"];}else{hist.push(id);}render();}
 function back(){if(hist.length>1){hist.pop();render();}}
 render();
 </script>
